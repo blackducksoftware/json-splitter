@@ -4,4 +4,4 @@ Utility to break large JSON scan file into smaller chunks that could be processe
 
 # Documentation
 
-Documentation for *json-splitter could be found here: 
+Documentation for *json-splitter could be found here: https://github.com/blackducksoftware/json-splitter/wiki
