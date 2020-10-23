@@ -87,8 +87,8 @@ for i in range(0, dataLength-1):
         scanChunkSize = 0
         scanChunkNodes = 0
         splitAt.append(i) 
-    if scanNodeList[i]['uri'].startswith('file://'):
-        scanChunkSize = scanChunkSize + scanNodeList[i]['size']
+    #if scanNodeList[i]['uri'].startswith('file://'):
+    scanChunkSize = scanChunkSize + scanNodeList[i].get('size',0)
     scanChunkNodes += 1
     
 # Create array of split points shifting by one position
