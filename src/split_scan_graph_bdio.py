@@ -1,3 +1,56 @@
+'''
+Created on Nov 15, 2022
+@author: kumykov
+
+BDIO Splitter allows to split BDIO files containing scan graph produced by Signature Scanner version 8.x
+
+The process is as following:
+
+uncompress original file into the source directory:
+It should produce a dataset looking like following:
+
+```
+source-folder
+|- bdio-header.jsonld
+|- bdio-entry-00.jsonld
+. . .
+```
+
+Set datadir variable to the source folder
+Set outdir variable to the destination folder
+
+Invoke as following:
+
+python3 split_scan_graph_bdio.py
+
+Once completed outdir will contain a set of folders
+
+outdir
+|- _part00
+|- _part01
+. . .
+
+Each containing a set of **jsonld** files that will make a valid BDIO document
+
+Compress them by executing the following command in the outdir folder:
+
+for i in _* ; do echo $i ; (cd $i ; zip ../${i}.bdio bdio-header.jsonld bdio-entry-* ) ; done
+
+this will produce a set of files as:
+
+_part00.bdio
+_part01.bdio
+. . .
+
+Each of them could be uploaded and processed individually
+
+# TODO
+
+* Add command line processing
+* Add file size computation for bdio-entry-xx.jsonld files
+* Add Project name and version override options
+
+'''
 import json
 import os
 from pprint import pprint
@@ -64,7 +117,9 @@ def update_header(header, part_name, part_uuid):
   updated_name = name[:index] + part_name + name[index:]
   header['https://blackducksoftware.github.io/bdio#hasName'][0]['@value'] = updated_name
 
+# Input data directory uncompress original BDIO file here
 datadir = "../jsonld"
+# Output folder for results
 outdir = "../jsonldout"
 max_file_entries = 150000
 content = load_data(datadir)
