@@ -139,9 +139,7 @@ def update_project_name_version(project_entry, new_project_name, new_project_ver
   if entry_type == type_project:
     return
   if new_project_name:
-    print (project_entry[type_name][0]['@value'])
     project_entry[type_name][0]['@value'] = new_project_name
-    print (project_entry[type_name][0]['@value'])
   if new_project_version:
     project_entry[type_version][0]['@value'] = new_project_version
 
@@ -149,8 +147,8 @@ def update_project_name_version(project_entry, new_project_name, new_project_ver
 parser = argparse.ArgumentParser("Split BDIO file into smaller chunks to facilitate processing of large scans")
 parser.add_argument("-in", "--input-dir", required=True, help="Location for uncompressed source BDIO file")
 parser.add_argument("-out", "--output-dir", required=True, help="Lokation for generated BDIO filesets")
-parser.add_argument("-mn", "--max-file-entries", default=150000, type=int, help="Maximum scan node entries per generated BDIO file")
-parser.add_argument("-mcn", "--max-chunk-nodes", default=5000, type=int, help="Maximum scan node entries per single bdio-entry file")
+parser.add_argument("-mn", "--max-file-entries", default=100000, type=int, help="Maximum scan node entries per generated BDIO file")
+parser.add_argument("-mcn", "--max-chunk-nodes", default=3000, type=int, help="Maximum scan node entries per single bdio-entry file")
 parser.add_argument("-pn", "--project-name", default=None, help="Change project name")
 parser.add_argument("-pv", "--project-version", default=None, help="Change project version")
 args = parser.parse_args()
@@ -216,7 +214,6 @@ while len(current_chunk) > 0:
   project_entry_copy = copy.deepcopy(graph_entries_with_no_parent[0])
   update_header(header_copy, part_name, part_uuid)
   update_project_name_version(project_entry_copy, new_project_name, new_project_version)
-  pprint(project_entry_copy)
   output_path = os.path.join(outdir, part_name)
   write_header(output_path, header_copy)
   write_entry_file(output_path, header_copy, project_entry_copy, current_chunk)
