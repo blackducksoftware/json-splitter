@@ -16,12 +16,8 @@ source-folder
 . . .
 ```
 
-Set datadir variable to the source folder
-Set outdir variable to the destination folder
-
 Invoke as following:
-
-python3 split_scan_graph_bdio.py
+python3 split_scan_graph_bdio.py -in source-folder -out outdir
 
 Once completed outdir will contain a set of folders
 
@@ -44,11 +40,26 @@ _part01.bdio
 
 Each of them could be uploaded and processed individually
 
+Command line options:
+
+options:
+  -h, --help            show this help message and exit
+  -in INPUT_DIR, --input-dir INPUT_DIR
+                        Location for uncompressed source BDIO file
+  -out OUTPUT_DIR, --output-dir OUTPUT_DIR
+                        Lokation for generated BDIO filesets
+  -mn MAX_FILE_ENTRIES, --max-file-entries MAX_FILE_ENTRIES
+                        Maximum scan node entries per generated BDIO file
+  -mcn MAX_CHUNK_NODES, --max-chunk-nodes MAX_CHUNK_NODES
+                        Maximum scan node entries per single bdio-entry file
+  -pn PROJECT_NAME, --project-name PROJECT_NAME
+                        Change project name
+  -pv PROJECT_VERSION, --project-version PROJECT_VERSION
+                        Change project version
+
 # TODO
 
-* Add command line processing
 * Add file size computation for bdio-entry-xx.jsonld files
-* Add Project name and version override options
 
 '''
 import json
@@ -56,8 +67,14 @@ import os
 from pprint import pprint
 import uuid
 import copy
+import argparse
 
 p_key = 'https://blackducksoftware.github.io/bdio#hasParentId'
+type_project = "https://blackducksoftware.github.io/bdio#Project"
+type_name = "https://blackducksoftware.github.io/bdio#hasName"
+type_version = "https://blackducksoftware.github.io/bdio#hasVersion"
+
+max_nodes_per_entry_file=5000
 
 def load_data(datadir):
   content = dict()
@@ -95,7 +112,7 @@ def write_entry_file(outdir, header, project_entry, graph):
   entry_object['@id'] = header['@id']
   entry_object['@type'] = header['@type']
   offset=0
-  size=5000
+  size=max_nodes_per_entry_file
   entry_number=0
   current_slice = graph[offset:size]
   while len(current_slice) > 0:
@@ -117,11 +134,44 @@ def update_header(header, part_name, part_uuid):
   updated_name = name[:index] + part_name + name[index:]
   header['https://blackducksoftware.github.io/bdio#hasName'][0]['@value'] = updated_name
 
+def update_project_name_version(project_entry, new_project_name, new_project_version):
+  entry_type = project_entry['@type']
+  if entry_type == type_project:
+    return
+  if new_project_name:
+    print (project_entry[type_name][0]['@value'])
+    project_entry[type_name][0]['@value'] = new_project_name
+    print (project_entry[type_name][0]['@value'])
+  if new_project_version:
+    project_entry[type_version][0]['@value'] = new_project_version
+
+
+parser = argparse.ArgumentParser("Split BDIO file into smaller chunks to facilitate processing of large scans")
+parser.add_argument("-in", "--input-dir", required=True, help="Location for uncompressed source BDIO file")
+parser.add_argument("-out", "--output-dir", required=True, help="Lokation for generated BDIO filesets")
+parser.add_argument("-mn", "--max-file-entries", default=150000, type=int, help="Maximum scan node entries per generated BDIO file")
+parser.add_argument("-mcn", "--max-chunk-nodes", default=5000, type=int, help="Maximum scan node entries per single bdio-entry file")
+parser.add_argument("-pn", "--project-name", default=None, help="Change project name")
+parser.add_argument("-pv", "--project-version", default=None, help="Change project version")
+args = parser.parse_args()
+
+pprint (args)
+# quit()
+
 # Input data directory uncompress original BDIO file here
-datadir = "../jsonld"
-# Output folder for results
-outdir = "../jsonldout"
-max_file_entries = 150000
+datadir = args.input_dir
+outdir = args.output_dir
+max_file_entries = int(args.max_file_entries)
+max_nodes_per_entry_file = args.max_chunk_nodes
+new_project_name = args.project_name
+new_project_version = args.project_version
+
+# validate input directory
+if not os.path.exists(datadir):
+  print (f"\nInput directory {datadir} was not found\n Exiting...\n")
+  quit(1)
+
+
 content = load_data(datadir)
 header = content['bdio-header.jsonld']
 graph = concatenate_graph(content)
@@ -157,11 +207,18 @@ while len(current_chunk) > 0:
   for i in backfill:
     current_chunk.append(sorted_graph[sorted_node_ids.index(i)])
   part_name = "_part{:02d}".format(part)
+  if new_project_version:
+    part_name = f"_{new_project_version}{part_name}"
+  if new_project_name:
+    part_name = f"_{new_project_name}{part_name}"
   part_uuid = uuid.uuid4().urn
   header_copy = copy.deepcopy(header)
+  project_entry_copy = copy.deepcopy(graph_entries_with_no_parent[0])
   update_header(header_copy, part_name, part_uuid)
+  update_project_name_version(project_entry_copy, new_project_name, new_project_version)
+  pprint(project_entry_copy)
   output_path = os.path.join(outdir, part_name)
   write_header(output_path, header_copy)
-  write_entry_file(output_path, header_copy, graph_entries_with_no_parent[0], current_chunk)
+  write_entry_file(output_path, header_copy, project_entry_copy, current_chunk)
   part += 1
   current_chunk = sorted_graph[size*part:size*(part+1)]
