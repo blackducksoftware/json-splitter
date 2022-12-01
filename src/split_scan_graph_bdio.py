@@ -176,13 +176,19 @@ graph = concatenate_graph(content)
 graph_entries_with_no_parent = non_file_graph(graph)
 sorted_graph = sorted_file_graph(graph)
 num_source_entries = len(sorted_graph)
-sorted_parent_ids = [id[p_key][0]['@value'] for id in sorted_graph]
+sorted_parent_ids = [int(id[p_key][0]['@value']) for id in sorted_graph]
 sorted_node_ids = [int(id['@id'][id['@id'].index('scanNode-')+9:1000]) for id in sorted_graph]
 
 offset=0
 size=max_file_entries
 part=0
-current_chunk = sorted_graph[size*part:size*(part+1)]
+current_chunk_0 = sorted_graph[size*part:size*(part+1)]
+# current_chunk = [d for d in current_chunk_0 if d.get(p_key)[0]['@value'] > 0]
+current_chunk = current_chunk_0[50:]
+# removed = current_chunk_0[0:29]
+# pprint (removed)
+# print (len(current_chunk_0))
+# print (len(current_chunk))
 while len(current_chunk) > 0:
   parent_ids = [id[p_key][0]['@value'] for id in current_chunk]
   node_ids = [int(id['@id'][id['@id'].index('scanNode-')+9:1000]) for id in current_chunk]
