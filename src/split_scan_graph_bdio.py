@@ -182,13 +182,9 @@ sorted_node_ids = [int(id['@id'][id['@id'].index('scanNode-')+9:1000]) for id in
 offset=0
 size=max_file_entries
 part=0
-current_chunk_0 = sorted_graph[size*part:size*(part+1)]
-# current_chunk = [d for d in current_chunk_0 if d.get(p_key)[0]['@value'] > 0]
-current_chunk = current_chunk_0[50:]
-# removed = current_chunk_0[0:29]
-# pprint (removed)
-# print (len(current_chunk_0))
-# print (len(current_chunk))
+first_part = max_nodes_per_entry_file*2
+current_chunk = sorted_graph[:first_part]
+print (len(current_chunk))
 while len(current_chunk) > 0:
   parent_ids = [id[p_key][0]['@value'] for id in current_chunk]
   node_ids = [int(id['@id'][id['@id'].index('scanNode-')+9:1000]) for id in current_chunk]
@@ -224,4 +220,4 @@ while len(current_chunk) > 0:
   write_header(output_path, header_copy)
   write_entry_file(output_path, header_copy, project_entry_copy, current_chunk)
   part += 1
-  current_chunk = sorted_graph[size*part:size*(part+1)]
+  current_chunk = sorted_graph[size*part+first_part:size*(part+1)+first_part]
