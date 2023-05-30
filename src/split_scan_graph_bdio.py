@@ -219,5 +219,5 @@ while len(current_chunk) > 0:
   output_path = os.path.join(outdir, part_name)
   write_header(output_path, header_copy)
   write_entry_file(output_path, header_copy, project_entry_copy, current_chunk)
-  part += 1
   current_chunk = sorted_graph[size*part+first_part:size*(part+1)+first_part]
+  part += 1
