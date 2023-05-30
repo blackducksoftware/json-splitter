@@ -184,8 +184,8 @@ size=max_file_entries
 part=0
 first_part = max_nodes_per_entry_file*2
 current_chunk = sorted_graph[:first_part]
-print (len(current_chunk))
 while len(current_chunk) > 0:
+  print (len(current_chunk))
   parent_ids = [id[p_key][0]['@value'] for id in current_chunk]
   node_ids = [int(id['@id'][id['@id'].index('scanNode-')+9:1000]) for id in current_chunk]
   # missing_node_ids = list(set(node_ids).difference(parent_ids))
