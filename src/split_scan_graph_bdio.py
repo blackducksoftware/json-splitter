@@ -130,8 +130,11 @@ def write_entry_file(outdir, header, project_entry, graph):
 def update_header(header, part_name, part_uuid):
   header['@id'] = part_uuid
   name = header['https://blackducksoftware.github.io/bdio#hasName'][0]['@value']
-  index = name.index(' signature')
-  updated_name = name[:index] + part_name + name[index:]
+  index = name.find(' signature')
+  if index > 0:
+     updated_name = name[:index] + part_name + name[index:]
+  else:
+     updated_name = name + part_name
   header['https://blackducksoftware.github.io/bdio#hasName'][0]['@value'] = updated_name
 
 def update_project_name_version(project_entry, new_project_name, new_project_version):
